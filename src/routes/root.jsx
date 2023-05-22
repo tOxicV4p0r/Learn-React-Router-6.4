@@ -1,12 +1,16 @@
 import { useEffect } from "react";
-import { Form, Link, Outlet, redirect, useActionData, useLoaderData, useNavigation } from "react-router-dom";
+import { Form, Link, Outlet, redirect, useActionData, useLoaderData, useNavigation, useSubmit } from "react-router-dom";
+import './root.css';
 
 export default function Root() {
     const { contacts, q } = useLoaderData();
     const dataAction = useActionData();
     const navigation = useNavigation();
+    const submit = useSubmit();
     console.log('Root');
     console.log(navigation);
+
+    const searching = navigation.location && new URLSearchParams(navigation.location.search).has("q");
 
     useEffect(() => {
         document.getElementById("q").value = q;
@@ -18,6 +22,7 @@ export default function Root() {
                 <h1>React Router Contacts </h1>
                 <h2>contact : {contacts.first}</h2>
                 <h2>Navigation : {navigation.state}</h2>
+                <h2>Navigation : {searching ? "true" : "false"}</h2>
                 <div>
                     <Form id="search-form" role="search">
                         <input
@@ -26,9 +31,14 @@ export default function Root() {
                             placeholder="Search"
                             type="search"
                             name="q"
+                            className={searching ? "loading" : ""}
                             defaultValue={q}
+                            onChange={(event) => {
+                                const isFirstSearch = q == null;
+                                submit(event.currentTarget.form, { replace: !isFirstSearch });
+                            }}
                         />
-                        <div id="search-spinner" aria-hidden hidden={true} />
+                        <div id="search-spinner" aria-hidden hidden={!searching} />
                         <div className="sr-only" aria-live="polite"></div>
                     </Form>
                     <form method="post">
