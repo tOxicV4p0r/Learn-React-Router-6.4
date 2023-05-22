@@ -1,17 +1,18 @@
-import { Form, Link, Outlet, useActionData, useLoaderData } from "react-router-dom";
+import { Form, Link, Outlet, redirect, useActionData, useLoaderData, useNavigation } from "react-router-dom";
 
 export default function Root() {
     const contacts = useLoaderData();
     const dataAction = useActionData();
+    const navigation = useNavigation();
     console.log('Root');
-    console.log(contacts);
-    console.log(dataAction);
+    console.log(navigation);
 
     return (
         <div style={{ display: "flex" }}>
             <div id="sidebar">
                 <h1>React Router Contacts </h1>
                 <h2>contact : {contacts.first}</h2>
+                <h2>Navigation : {navigation.state}</h2>
                 <div>
                     <form id="search-form" role="search">
                         <input
@@ -59,31 +60,44 @@ export default function Root() {
 }
 
 export async function loader({ params }) {
-    console.log(params)
     const contacts = await getContacts(params.contactId);
-    console.log(contacts)
     return contacts;
 }
 
-export async function actionContact() {
-    const contacts = await getContacts(5);
-    console.log('actionContact')
-    console.log(contacts)
+export async function contactLoader({ params }) {
+    const contacts = await getContacts(params.contactId);
     return contacts;
+}
+
+export async function actionRoot() {
+    console.log('actionRoot')
+    const contacts = await getContacts(0);
+    console.log('return actionRoot')
+    console.log(contacts)
+    return redirect(`/contacts/${0}`);
+}
+
+export async function actionContact({ params = { contactId: 0 } }) {
+    console.log('actionContact')
+    const { contactId } = params
+    const id = contactId ? contactId : 0;
+    const contacts = await getContacts(id + 1);
+    console.log('return actionContact')
+    console.log(contacts)
+    return redirect(`/contacts/${id + 1}`);
 }
 
 export function getContacts(id = 0) {
     return new Promise((resolve, reject) => {
         setTimeout((id) => {
-            console.log(id)
             resolve({
                 first: `Your ${id}`,
                 last: `Name ${id}`,
-                avatar: `https://placekitten.com/g/200/${id*100}`,
+                avatar: `https://placekitten.com/g/200/${id * 100}`,
                 twitter: `your_handle_${id}`,
                 notes: "Some notes",
                 favorite: true,
             });
-        }, 0, id);
+        }, 1000, id);
     });
 }
