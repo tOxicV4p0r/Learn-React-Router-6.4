@@ -1,11 +1,16 @@
+import { useEffect } from "react";
 import { Form, Link, Outlet, redirect, useActionData, useLoaderData, useNavigation } from "react-router-dom";
 
 export default function Root() {
-    const contacts = useLoaderData();
+    const { contacts, q } = useLoaderData();
     const dataAction = useActionData();
     const navigation = useNavigation();
     console.log('Root');
     console.log(navigation);
+
+    useEffect(() => {
+        document.getElementById("q").value = q;
+    }, [q]);
 
     return (
         <div style={{ display: "flex" }}>
@@ -14,24 +19,18 @@ export default function Root() {
                 <h2>contact : {contacts.first}</h2>
                 <h2>Navigation : {navigation.state}</h2>
                 <div>
-                    <form id="search-form" role="search">
+                    <Form id="search-form" role="search">
                         <input
                             id="q"
                             aria-label="Search contacts"
                             placeholder="Search"
                             type="search"
                             name="q"
+                            defaultValue={q}
                         />
-                        <div
-                            id="search-spinner"
-                            aria-hidden
-                            hidden={true}
-                        />
-                        <div
-                            className="sr-only"
-                            aria-live="polite"
-                        ></div>
-                    </form>
+                        <div id="search-spinner" aria-hidden hidden={true} />
+                        <div className="sr-only" aria-live="polite"></div>
+                    </Form>
                     <form method="post">
                         <button type="submit">New</button>
                     </form>
@@ -59,7 +58,15 @@ export default function Root() {
     );
 }
 
-export async function loader({ params }) {
+
+export async function rootLoader({ request }) {
+    const url = new URL(request.url);
+    const q = url.searchParams.get('q');
+    const contacts = await getContacts(q);
+    return { contacts, q };
+}
+
+export async function conLoader({ params }) {
     const contacts = await getContacts(params.contactId);
     return contacts;
 }
